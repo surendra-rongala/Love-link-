@@ -1,0 +1,61 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    function isAuth()        { return request.auth != null; }
+    function isUser(uid)     { return request.auth.uid == uid; }
+    function isCoupleOf(cid) {
+      return isAuth() &&
+        exists(/databases/$(database)/documents/couples/$(cid)) &&
+        request.auth.uid in get(/databases/$(database)/documents/couples/$(cid)).data.members;
+    }
+
+    match /users/{uid} {
+      allow read:  if isAuth();
+      allow write: if isUser(uid);
+    }
+
+    match /couples/{coupleId} {
+      allow read, write: if isCoupleOf(coupleId);
+
+      match /messages/{msgId}       { allow read, write: if isCoupleOf(coupleId); }
+      match /gifts/{giftId}         { allow read, write: if isCoupleOf(coupleId); }
+      match /notes/{noteId}         { allow read, write: if isCoupleOf(coupleId); }
+      match /daily_answers/{dateId} { allow read, write: if isCoupleOf(coupleId); }
+      match /drafts/{uid}           { allow read, write: if isCoupleOf(coupleId); }
+      match /milestones/{id}        { allow read, write: if isCoupleOf(coupleId); }
+      match /memories/{id}          { allow read, write: if isCoupleOf(coupleId); }
+
+      // Private space — user-scoped
+      match /private_{uid}/{docId} {
+        allow read, write: if isAuth() && request.auth.uid == uid;
+      }
+    }
+
+    // ── Phase 3: Sync Mode ──────────────────────────────────────
+    match /sync_state/{coupleId} {
+      allow read, write: if isCoupleOf(coupleId);
+      match /chat/{msgId} { allow read, write: if isCoupleOf(coupleId); }
+    }
+
+    // ── Phase 3: Draw Together ──────────────────────────────────
+    match /draw_sessions/{coupleId} {
+      allow read, write: if isCoupleOf(coupleId);
+      match /strokes/{strokeId} { allow read, write: if isCoupleOf(coupleId); }
+    }
+
+    // ── Phase 3: Live Snaps ─────────────────────────────────────
+    match /live_snaps/{snapId} {
+      allow create: if isAuth();
+      allow read, update: if isAuth() &&
+        (resource.data.senderId == request.auth.uid ||
+         resource.data.receiverId == request.auth.uid);
+    }
+
+    // ── Streaks + Missions ──────────────────────────────────────
+    match /streaks/{coupleId}          { allow read, write: if isCoupleOf(coupleId); }
+    match /missions/{docId}            { allow read, write: if isAuth(); }
+    match /mission_totals/{docId}      { allow read, write: if isAuth(); }
+    match /analytics_cache/{coupleId}  { allow read, write: if isCoupleOf(coupleId); }
+  }
+}
