@@ -7,12 +7,12 @@ import { getFirestore }  from 'firebase/firestore'
 import { getStorage }    from 'firebase/storage'
 
 const firebaseConfig = {
-  apiKey:            "YOUR_API_KEY",
-  authDomain:        "YOUR_PROJECT_ID.firebaseapp.com",
-  projectId:         "YOUR_PROJECT_ID",
-  storageBucket:     "YOUR_PROJECT_ID.appspot.com",
-  messagingSenderId: "YOUR_SENDER_ID",
-  appId:             "YOUR_APP_ID",
+  apiKey:            "AIzaSyAnG3eIsyADTwNZotRDrgujuaS2L_kijM0",
+  authDomain:        "codejoy.firebaseapp.com",
+  projectId:         "codejoy",
+  storageBucket:     "codejoy.firebasestorage.app",
+  messagingSenderId: "552302634071",
+  appId:             "1:552302634071:web:fbf251ce028725aa85af12",
 }
 
 const app = initializeApp(firebaseConfig)
